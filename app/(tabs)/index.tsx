@@ -1,4 +1,4 @@
-// app/(tabs)/index.tsx dosyası
+// app/(tabs)/index.tsx
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
@@ -6,10 +6,10 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle, Settings } from 'lucide-react-native';
+import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native';
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
-import { TrendCapsule } from '@/components/TrendCapsule'; //
+import { TrendCapsule } from '@/components/TrendCapsule';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,14 +40,14 @@ export default function HomeScreen() {
               withTiming('360deg', { duration: 1000 })
             ),
             -1,
-            false // Sonsuz döngü
+            false
           ),
         },
       ],
     };
   });
 
-  // Tema ikonu animasyon stili (sadece menü açıkken dönüyor)
+  // Tema ikonu animasyon stili
   const themeIconAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -104,7 +104,6 @@ export default function HomeScreen() {
         window.addEventListener('focus', handleFocus);
       }
 
-      // Cleanup fonksiyonu döndür
       return () => {
         if (channel) {
           console.log('Unsubscribing reports_channel_home_screen');
@@ -116,17 +115,16 @@ export default function HomeScreen() {
       };
     };
 
-    const cleanup = setupSupabaseListenersAndFetch(); // Async fonksiyonu çağırıp cleanup fonksiyonunu al
+    const cleanup = setupSupabaseListenersAndFetch();
     
-    // useEffect'in kendi cleanup'ını döndür
     return () => {
-      cleanup.then(cb => { // Promise tamamlandığında cleanup callback'ini çağır
+      cleanup.then(cb => {
         if (typeof cb === 'function') {
           cb();
         }
       });
     };
-  }, []); // Bağımlılık dizisi boş kalmalı ki sadece bir kez monte edilsin
+  }, []);
 
   async function fetchUserData() {
     try {
@@ -219,8 +217,8 @@ export default function HomeScreen() {
           {
             backgroundColor: colors.card,
             transform: [{ scale: pressed ? 0.98 : 1 }],
-            borderColor: `${colors.border}50`, // Daha belirgin kart kenarlığı
-            borderWidth: 1, // Daha belirgin kart kenarlığı
+            borderColor: `${colors.border}50`,
+            borderWidth: 1,
             shadowColor: colors.shadow,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.15,
@@ -323,8 +321,8 @@ export default function HomeScreen() {
           <Text style={[styles.aiText, { color: colors.primary, marginTop: 8 }]}>
             Yapay Zeka Raporlarınız Hazır
           </Text>
-          {/* Trend Kapsülü yeni konumu */}
-          <View style={styles.trendCapsuleNewLocation}>
+          {/* Trend Kapsülü yeni konumu ve daha aşağıda */}
+          <View style={[styles.trendCapsuleNewLocation, { marginTop: 20 }]}> {/* marginTop değeri 20 olarak ayarlandı */}
             <TrendCapsule />
           </View>
         </View>
@@ -332,11 +330,11 @@ export default function HomeScreen() {
         {/* Sağ üstteki tuşlar */}
         <View style={styles.headerRightButtons}>
           <Pressable
-            style={({ pressed }) => [ 
+            style={({ pressed }) => [
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 
+                opacity: pressed ? 0.7 : 1
               }
             ]}
             onPress={handleManualRefresh}
@@ -351,11 +349,11 @@ export default function HomeScreen() {
             </Animated.View>
           </Pressable>
           <Pressable
-            style={({ pressed }) => [ 
+            style={({ pressed }) => [
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 
+                opacity: pressed ? 0.7 : 1
               }
             ]}
             onPress={handleToggleTheme}
@@ -367,18 +365,6 @@ export default function HomeScreen() {
             )}
           </Pressable>
           {/* Üç nokta tuşu kaldırıldı */}
-          {/* <Pressable
-            style={({ pressed }) => [ 
-              styles.iconButton, 
-              { 
-                backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 
-              }
-            ]}
-            onPress={() => setIsMenuVisible(true)}
-          >
-            <MoreVertical size={20} color={colors.text} />
-          </Pressable> */}
         </View>
       </View>
 
@@ -523,7 +509,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
   },
-  settingsButton: { // Bu artık kullanılmayacak, headerRightButtons içine taşındı
+  settingsButton: {
     display: 'none',
   },
   refreshIcon: {
