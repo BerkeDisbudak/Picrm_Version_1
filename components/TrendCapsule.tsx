@@ -1,3 +1,5 @@
+// components/TrendCapsule.tsx dosyası
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
@@ -41,7 +43,7 @@ export function TrendCapsule() {
       // DİKKAT: 'trend_analyses' yerine Supabase'deki gerçek tablo adınızı (örneğin 'Trends') yazmalısınız.
       const { data, error: fetchError } = await supabase
         .from('trend_analyses') // <-- BURAYI KONTROL ET VE DOĞRU TABLO ADINI YAZIN!
-        .select('trends, created_at') // 'trends' sütununu ve sıralama için 'created_at'ı seçiyoruz.
+        .select('trend, created_at') // 'trend' sütununu ve sıralama için 'created_at'ı seçiyoruz.
         // NOT: 'created_at'ı tabloda yoksa bu satır hataya neden olur.
         .eq('user_id', user.id) // Oturum açmış kullanıcının ID'sine göre filtrele
         .order('created_at', { ascending: false }) // En yeni kaydı almak için oluşturulma tarihine göre azalan sırada sırala
@@ -58,8 +60,8 @@ export function TrendCapsule() {
       if (data) {
         // Veri döndüyse, sadece 'trends' kısmını alıp state'e kaydet.
         // Çünkü TrendData arayüzümüzde sadece 'trends' var.
-        setTrendData({ trends: data.trends });
-        console.log('Trend verisi başarıyla çekildi:', data.trends);
+        setTrendData({ trends: data.trend }); // 'trend' sütunundan gelen veriyi al
+        console.log('Trend verisi başarıyla çekildi:', data.trend); //
       } else {
         // Eğer hiçbir kayıt bulunamazsa (örneğin 'user_id' için veri yoksa), state'i null yap.
         setTrendData(null); 
@@ -152,9 +154,9 @@ export function TrendCapsule() {
       <View style={styles.contentContainer}>
         <Text 
           style={[styles.text, { color: colors.primary }]}
-          numberOfLines={1} // Tek satırda göster, taşarsa kes
+          numberOfLines={1} 
         >
-          {trendData.trends}
+          Lead Sayısı: {trendData.trends}  {/* "Lead Sayısı" metni eklendi */}
         </Text>
       </View>
     </Animated.View>
@@ -169,18 +171,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
-    alignSelf: 'flex-start', // İçeriği sola yasla
-    maxWidth: '100%', // Maksimum genişlik
+    alignSelf: 'flex-start',
+    width: '100%', // Enine uzaması için
   },
   icon: {
     marginRight: 8,
-    flexShrink: 0, // Icon boyutunu küçültme
+    flexShrink: 0,
   },
   contentContainer: {
-    flex: 1, // Metnin kalan alanı doldurmasını sağla
+    flex: 1,
   },
   text: {
-    fontFamily: 'Inter-Medium', // Özel font kullanımı
+    fontFamily: 'Inter-Medium',
     fontSize: 14,
   },
 });
