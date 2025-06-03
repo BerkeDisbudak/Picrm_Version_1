@@ -1,3 +1,5 @@
+// app/(tabs)/reports.tsx dosyası
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
@@ -116,6 +118,8 @@ export default function ReportsScreen() {
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.1,
             shadowRadius: 8,
+            borderColor: colors.border, // Kartlara border ekle
+            borderWidth: 1, // Kartlara border ekle
           },
         ]}
         onPress={() => router.push(`/report/${item.id}`)}
