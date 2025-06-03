@@ -20,11 +20,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Yine de, bu hatayı gidermek için, abonelik nesnesinin düzgün bir şekilde
 // yönetildiğinden emin olalım.
 
-// Global abonelik yönetimini daha kontrollü hale getirelim.
-let reportsChannel: any = null;
+let reportsChannel: any = null; // reports kanalını tutacak değişken
 
 if (Platform.OS === 'web') {
-  if (!reportsChannel) { // Kanal zaten oluşturulmadıysa oluştur
+  // Eğer kanal henüz oluşturulmadıysa ve abone olunmadıysa
+  if (!reportsChannel || reportsChannel.state === 'closed') { 
     reportsChannel = supabase
       .channel('reports')
       .on('postgres_changes', {
@@ -41,12 +41,16 @@ if (Platform.OS === 'web') {
     // Uygulama kapatıldığında veya yeniden yüklendiğinde aboneliği iptal et
     // Bu, StackBlitz'in "destroy is not a function" hatasına neden olan
     // yaşam döngüsü sorunlarını gidermeye yardımcı olabilir.
-    window.addEventListener('beforeunload', () => {
-      if (reportsChannel) {
-        reportsChannel.unsubscribe();
-        reportsChannel = null;
-      }
-    });
+    // Bu listener'ı yalnızca bir kez eklediğimizden emin olmalıyız.
+    if (!window.__supabaseReportsChannelCleanupRegistered) {
+      window.addEventListener('beforeunload', () => {
+        if (reportsChannel) {
+          reportsChannel.unsubscribe();
+          reportsChannel = null; // Kanalı sıfırla
+        }
+      });
+      window.__supabaseReportsChannelCleanupRegistered = true; // Kayıtlı olduğunu işaretle
+    }
   }
 }
 
@@ -99,4 +103,11 @@ export async function deleteReport(id: string) {
     .eq('id', id);
 
   if (error) throw error;
+}
+
+// Global scope'a bu değişkeni ekliyoruz ki, birden fazla kez tanımlanmasın
+declare global {
+  interface Window {
+    __supabaseReportsChannelCleanupRegistered?: boolean;
+  }
 }
