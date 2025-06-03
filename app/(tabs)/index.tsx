@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle } from 'lucide-react-native';
+import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle, Settings } from 'lucide-react-native'; // Settings ikonunu ekledik
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { TrendCapsule } from '@/components/TrendCapsule';
@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
+  // Refresh tuşu için animasyon stili
   const refreshIconStyle = useAnimatedStyle(() => {
     if (!isRefreshing) return {};
     return {
@@ -37,13 +38,14 @@ export default function HomeScreen() {
               withTiming('360deg', { duration: 1000 })
             ),
             -1,
-            false
+            false // Sonsuz döngü
           ),
         },
       ],
     };
   });
 
+  // Tema ikonu animasyon stili (sadece menü açıkken dönüyor)
   const themeIconAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -65,9 +67,8 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    let channel: any = null; // Supabase real-time kanalı için değişken
+    let channel: any = null;
 
-    // handleFocus fonksiyonunu useEffect dışında tanımla, böylece cleanup fonksiyonu erişebilir.
     const handleFocus = () => {
       console.log('HomeScreen focused, fetching reports...');
       fetchReports();
@@ -75,53 +76,47 @@ export default function HomeScreen() {
     };
 
     const setupListenersAndFetch = async () => {
-      // 1. Kullanıcı verisini çek
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.warn('HomeScreen: User not authenticated on init, redirecting to login.');
         router.replace('/login');
-        setLoading(false); // Kullanıcı yoksa yükleme durumunu kapat
+        setLoading(false);
         return;
       }
-      setUser(user); // Kullanıcıyı state'e ayarla
+      setUser(user);
 
-      // 2. İlk veri çekme
-      await fetchReports(true); // `true` parametresiyle ilk yükleme olduğunu belirt
+      await fetchReports(true);
 
-      // 3. Realtime kanal aboneliğini başlat
       channel = supabase
         .channel('reports_channel_home_screen')
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
           table: 'Reports',
-          filter: `user_id=eq.${user.id}` // Sadece o kullanıcının raporlarını dinle
+          filter: `user_id=eq.${user.id}`
         }, (payload) => {
           console.log('Realtime change in Reports (HomeScreen):', payload);
-          fetchReports(); // Değişiklik algılandığında veriyi yeniden çek
+          fetchReports();
         })
         .subscribe();
       
-      // 4. Ekran odağa geldiğinde otomatik yenileme (web için)
       if (typeof window !== 'undefined') {
         window.addEventListener('focus', handleFocus);
       }
     };
 
-    // async fonksiyonu useEffect içinde çağır
     setupListenersAndFetch();
 
-    // Cleanup fonksiyonu döndür
     return () => {
       if (channel) {
         console.log('Unsubscribing reports_channel_home_screen');
         channel.unsubscribe();
       }
       if (typeof window !== 'undefined') {
-        window.removeEventListener('focus', handleFocus); // handleFocus'a artık erişim olduğu için aktif.
+        window.removeEventListener('focus', handleFocus);
       }
     };
-  }, []); // Bağımlılık dizisi boş kalmalı ki sadece bir kez monte edilsin
+  }, []);
 
   async function fetchUserData() {
     try {
@@ -134,55 +129,54 @@ export default function HomeScreen() {
     }
   }
 
-  // Raporları çeken ana fonksiyon
-  // `initialLoad` true ise, `setLoading(true)` çağırır ve hata durumunda `setLoading(false)` yapar.
-  // Diğer durumlarda (realtime, pull-to-refresh, manuel refresh) `loading` veya `refreshing` state'lerini yönetir.
   async function fetchReports(initialLoad = false) {
     if (!initialLoad && (loading || refreshing)) {
-      // İlk yükleme değilse ve zaten bir yükleme veya yenileme işlemi varsa, tekrar başlatma
       return;
     }
 
     if (initialLoad) {
-      setLoading(true); // İlk yüklemede loading'i true yap
+      setLoading(true);
     } else {
-      // Diğer durumlarda, loading'i yalnızca zaten true değilse ayarla
       if (!loading && !refreshing) setLoading(true);
     }
     
-    setError(null); // Her yeni çekme işleminde hatayı temizle
+    setError(null);
 
     try {
-      // getReports içinde zaten user kontrolü var, burada tekrar yapmaya gerek yok
       const data = await getReports(); 
-      setReports(data || []); // null yerine boş dizi gelmeli artık
+      setReports(data || []);
 
     } catch (err: any) {
       console.error('HomeScreen: Error fetching reports:', err);
       setError('Raporlar yüklenirken bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setLoading(false);
-      setRefreshing(false); // Yenileme tamamlandı
-      setIsRefreshing(false); // Animasyon tamamlandı
+      setRefreshing(false);
+      setIsRefreshing(false);
     }
   }
 
   const onRefresh = React.useCallback(() => {
-    setRefreshing(true); // Pull-to-refresh başlatıldı
-    setError(null);       // Hataları temizle
-    fetchReports(); // Raporları yeniden çek
+    setRefreshing(true);
+    setError(null);
+    fetchReports();
   }, []);
 
   const handleManualRefresh = () => {
-    setIsRefreshing(true); // Manuel refresh animasyonunu başlat
-    setIsMenuVisible(false); // Menüyü kapat
-    setError(null);        // Hataları temizle
-    fetchReports(); // Raporları yeniden çek
+    setIsRefreshing(true);
+    setIsMenuVisible(false);
+    setError(null);
+    fetchReports();
   };
 
   const handleToggleTheme = () => {
     toggleTheme();
     setIsMenuVisible(false);
+  };
+
+  const handleGoToSettings = () => {
+    router.push('/settings'); // Ayarlar sayfasına yönlendir
+    setIsMenuVisible(false); // Menüyü kapat
   };
 
   const handleCreateReport = async () => {
@@ -198,7 +192,7 @@ export default function HomeScreen() {
       await createReport('Untitled Report', newContent.trim());
       setNewContent('');
       setShowNewReport(false);
-      fetchReports(); // Rapor başarıyla oluşturulduktan sonra listeyi yenile
+      fetchReports();
     } catch (err: any) {
       setError('Rapor oluşturulurken bir hata oluştu');
       console.error('Error creating report:', err);
@@ -296,6 +290,13 @@ export default function HomeScreen() {
                 )}
               </Animated.View>
             </Pressable>
+            <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
+            <Pressable style={styles.menuItem} onPress={handleGoToSettings}>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>
+                Ayarlar
+              </Text>
+              <Settings size={20} color={colors.text} style={styles.menuItemIcon} />
+            </Pressable>
           </Animated.View>
         </Pressable>
       </Modal>
@@ -309,7 +310,8 @@ export default function HomeScreen() {
           <Text style={[styles.userName, { color: colors.text }]}>
             {user?.user_metadata?.display_name || 'Kullanıcı'}
           </Text>
-          <View style={styles.trendCapsuleWrapper}>
+          {/* Trend Kapsülü yeni konumda */}
+          <View style={styles.trendCapsuleNewLocation}>
             <TrendCapsule />
           </View>
           <Text style={[styles.aiText, { color: colors.primary }]}>
@@ -317,18 +319,12 @@ export default function HomeScreen() {
           </Text>
         </View>
         
-        {/* Ayarlar tuşu */}
+        {/* Ayarlar tuşu (daha önceki gibi kalsın ama menüyü açsın) */}
         <Pressable
           style={[styles.settingsButton, { backgroundColor: colors.card }]}
           onPress={() => setIsMenuVisible(true)}
         >
-          {isRefreshing ? (
-            <Animated.View style={refreshIconStyle}>
-              <RefreshCw size={20} color={colors.primary} />
-            </Animated.View>
-          ) : (
-            <MoreVertical size={20} color={colors.text} />
-          )}
+          <MoreVertical size={20} color={colors.text} /> {/* Bu tuş menüyü açacak */}
         </Pressable>
       </View>
 
@@ -443,8 +439,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     marginBottom: 8,
   },
-  trendCapsuleWrapper: {
+  // Trend kapsülünün yeni konumu ve boyutları
+  trendCapsuleNewLocation: {
     marginBottom: 8,
+    alignSelf: 'flex-start', // Sola yasla
+    maxWidth: '100%', // Maksimum genişlik
+    width: '100%', // Kapsülün enine genişlemesini sağlar
   },
   aiText: {
     fontFamily: 'Inter-Medium',
