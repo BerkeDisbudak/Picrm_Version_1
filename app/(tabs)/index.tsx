@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle, Settings } from 'lucide-react-native'; // Settings ikonunu ekledik
+import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle, Settings } from 'lucide-react-native';
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { TrendCapsule } from '@/components/TrendCapsule';
@@ -175,8 +175,8 @@ export default function HomeScreen() {
   };
 
   const handleGoToSettings = () => {
-    router.push('/settings'); // Ayarlar sayfasına yönlendir
-    setIsMenuVisible(false); // Menüyü kapat
+    router.push('/settings');
+    setIsMenuVisible(false);
   };
 
   const handleCreateReport = async () => {
@@ -303,14 +303,14 @@ export default function HomeScreen() {
 
       {/* Ana Sayfa Başlık ve Tuş Bölümü */}
       <View style={styles.header}>
-        <View style={styles.headerTextContainer}>
+        <View style={styles.headerLeftContent}> {/* Yeni View */}
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>
             {greeting},
           </Text>
           <Text style={[styles.userName, { color: colors.text }]}>
             {user?.user_metadata?.display_name || 'Kullanıcı'}
           </Text>
-          {/* Trend Kapsülü yeni konumda */}
+          {/* Trend Kapsülü */}
           <View style={styles.trendCapsuleNewLocation}>
             <TrendCapsule />
           </View>
@@ -319,16 +319,41 @@ export default function HomeScreen() {
           </Text>
         </View>
         
-        {/* Ayarlar tuşu (daha önceki gibi kalsın ama menüyü açsın) */}
-        <Pressable
-          style={[styles.settingsButton, { backgroundColor: colors.card }]}
-          onPress={() => setIsMenuVisible(true)}
-        >
-          <MoreVertical size={20} color={colors.text} /> {/* Bu tuş menüyü açacak */}
-        </Pressable>
+        {/* Sağ üstteki tuşlar */}
+        <View style={styles.headerRightButtons}>
+          <Pressable
+            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            onPress={handleManualRefresh}
+            disabled={isRefreshing}
+          >
+            <Animated.View style={refreshIconStyle}>
+              <RefreshCw 
+                size={20} 
+                color={colors.text}
+                style={styles.buttonIcon}
+              />
+            </Animated.View>
+          </Pressable>
+          <Pressable
+            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            onPress={handleToggleTheme}
+          >
+            {theme === 'dark' ? (
+              <Sun size={20} color={colors.text} style={styles.buttonIcon} />
+            ) : (
+              <Moon size={20} color={colors.text} style={styles.buttonIcon} />
+            )}
+          </Pressable>
+          <Pressable
+            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            onPress={() => setIsMenuVisible(true)}
+          >
+            <MoreVertical size={20} color={colors.text} />
+          </Pressable>
+        </View>
       </View>
 
-      {/* Hata Mesajı - İyileştirildi */}
+      {/* Hata Mesajı */}
       {error && (
         <Animated.View entering={FadeIn.duration(300)} style={[styles.errorBox, { backgroundColor: `${colors.error}10`, borderColor: colors.error }]}>
           <Text style={[styles.errorText, { color: colors.error }]}>
@@ -425,9 +450,17 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     position: 'relative',
   },
-  headerTextContainer: {
+  headerLeftContent: { // Yeni eklenen View için stil
     flex: 1,
-    marginRight: 60,
+  },
+  headerRightButtons: { // Sağ üstteki tuşlar için yeni View
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12, // Tuşlar arasında boşluk
+    position: 'absolute', // Mutlak konumlandırma
+    top: 50, // Üstten hizalama
+    right: 10, // Sağdan hizalama
+    zIndex: 10, // Diğer öğelerin üzerinde kalması için
   },
   greeting: {
     fontFamily: 'Inter-Regular',
@@ -442,27 +475,26 @@ const styles = StyleSheet.create({
   // Trend kapsülünün yeni konumu ve boyutları
   trendCapsuleNewLocation: {
     marginBottom: 8,
-    alignSelf: 'flex-start', // Sola yasla
-    maxWidth: '100%', // Maksimum genişlik
-    width: '100%', // Kapsülün enine genişlemesini sağlar
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    width: '100%',
   },
   aiText: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    marginTop: 8,
+    // marginTop: 8, // Bu stil artık doğrudan View içinde veriliyor
   },
-  settingsButton: {
-    position: 'absolute',
-    top: 50,
-    right: 10,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  settingsButton: { // Bu artık kullanılmayacak, headerRightButtons içine taşındı
+    display: 'none', // Görselden kaldırıldı
+  },
+  iconButton: { // Yeni tanımlanan iconButton stili
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10,
   },
-  refreshIcon: {
+  buttonIcon: { // İkonlar için genel stil
     opacity: 0.8,
   },
   list: {
