@@ -67,6 +67,13 @@ export default function HomeScreen() {
   useEffect(() => {
     let channel: any = null; // Supabase real-time kanalı için değişken
 
+    // handleFocus fonksiyonunu useEffect dışında tanımla, böylece cleanup fonksiyonu erişebilir.
+    const handleFocus = () => {
+      console.log('HomeScreen focused, fetching reports...');
+      fetchReports();
+      fetchUserData();
+    };
+
     const setupListenersAndFetch = async () => {
       // 1. Kullanıcı verisini çek
       const { data: { user } } = await supabase.auth.getUser();
@@ -96,30 +103,24 @@ export default function HomeScreen() {
         .subscribe();
       
       // 4. Ekran odağa geldiğinde otomatik yenileme (web için)
-      const handleFocus = () => {
-        console.log('HomeScreen focused, fetching reports...');
-        fetchReports();
-        fetchUserData(); // Kullanıcı verisini de yenile
-      };
-
       if (typeof window !== 'undefined') {
         window.addEventListener('focus', handleFocus);
       }
-
-      // Cleanup fonksiyonu döndür
-      return () => {
-        if (channel) {
-          console.log('Unsubscribing reports_channel_home_screen');
-          channel.unsubscribe();
-        }
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('focus', handleFocus);
-        }
-      };
     };
 
-    const cleanup = setupListenersAndFetch(); // setupListenersAndFetch'in döndürdüğü cleanup fonksiyonunu sakla
-    return cleanup; // useEffect'in kendi cleanup'ını döndür
+    // async fonksiyonu useEffect içinde çağır
+    setupListenersAndFetch();
+
+    // Cleanup fonksiyonu döndür
+    return () => {
+      if (channel) {
+        console.log('Unsubscribing reports_channel_home_screen');
+        channel.unsubscribe();
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', handleFocus); // handleFocus'a artık erişim olduğu için aktif.
+      }
+    };
   }, []); // Bağımlılık dizisi boş kalmalı ki sadece bir kez monte edilsin
 
   async function fetchUserData() {
