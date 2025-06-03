@@ -1,4 +1,5 @@
 // app/(tabs)/index.tsx
+// Görsel ve konumlandırma iyileştirmeleri tekrar uygulanıyor
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
@@ -6,7 +7,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native';
+import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native'; // MoreVertical kaldırıldı
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { TrendCapsule } from '@/components/TrendCapsule';
@@ -172,19 +173,19 @@ export default function HomeScreen() {
 
   const handleManualRefresh = () => {
     setIsRefreshing(true);
-    setIsMenuVisible(false);
+    setIsMenuVisible(false); // Menüyü kapat
     setError(null);
     fetchReports();
   };
 
   const handleToggleTheme = () => {
     toggleTheme();
-    setIsMenuVisible(false);
+    setIsMenuVisible(false); // Menüyü kapat
   };
 
   const handleGoToSettings = () => {
     router.push('/settings');
-    setIsMenuVisible(false);
+    setIsMenuVisible(false); // Menüyü kapat
   };
 
   const handleCreateReport = async () => {
