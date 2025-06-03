@@ -1,3 +1,5 @@
+// app/(tabs)/index.tsx dosyası
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
@@ -7,7 +9,7 @@ import { tr } from 'date-fns/locale';
 import { FileText, RefreshCw, Sun, Moon, MoreVertical, PlusCircle, Settings } from 'lucide-react-native';
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
-import { TrendCapsule } from '@/components/TrendCapsule';
+import { TrendCapsule } from '@/components/TrendCapsule'; //
 
 const { width, height } = Dimensions.get('window');
 
@@ -217,8 +219,8 @@ export default function HomeScreen() {
           {
             backgroundColor: colors.card,
             transform: [{ scale: pressed ? 0.98 : 1 }],
-            borderColor: `${colors.border}50`,
-            borderWidth: 1,
+            borderColor: `${colors.border}50`, // Daha belirgin kart kenarlığı
+            borderWidth: 1, // Daha belirgin kart kenarlığı
             shadowColor: colors.shadow,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.15,
@@ -318,23 +320,23 @@ export default function HomeScreen() {
           <Text style={[styles.userName, { color: colors.text }]}>
             {user?.user_metadata?.display_name || 'Kullanıcı'}
           </Text>
-          {/* Trend Kapsülü */}
-          <View style={styles.trendCapsuleNewLocation}>
-            <TrendCapsule />
-          </View>
           <Text style={[styles.aiText, { color: colors.primary, marginTop: 8 }]}>
             Yapay Zeka Raporlarınız Hazır
           </Text>
+          {/* Trend Kapsülü yeni konumu */}
+          <View style={styles.trendCapsuleNewLocation}>
+            <TrendCapsule />
+          </View>
         </View>
         
         {/* Sağ üstteki tuşlar */}
         <View style={styles.headerRightButtons}>
           <Pressable
-            style={({ pressed }) => [ //pressed efekti eklendi
+            style={({ pressed }) => [ 
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 //pressed efekti
+                opacity: pressed ? 0.7 : 1 
               }
             ]}
             onPress={handleManualRefresh}
@@ -349,11 +351,11 @@ export default function HomeScreen() {
             </Animated.View>
           </Pressable>
           <Pressable
-            style={({ pressed }) => [ //pressed efekti eklendi
+            style={({ pressed }) => [ 
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 //pressed efekti
+                opacity: pressed ? 0.7 : 1 
               }
             ]}
             onPress={handleToggleTheme}
@@ -364,18 +366,19 @@ export default function HomeScreen() {
               <Moon size={20} color={colors.text} style={styles.buttonIcon} />
             )}
           </Pressable>
-          <Pressable
-            style={({ pressed }) => [ //pressed efekti eklendi
+          {/* Üç nokta tuşu kaldırıldı */}
+          {/* <Pressable
+            style={({ pressed }) => [ 
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 //pressed efekti
+                opacity: pressed ? 0.7 : 1 
               }
             ]}
             onPress={() => setIsMenuVisible(true)}
           >
             <MoreVertical size={20} color={colors.text} />
-          </Pressable>
+          </Pressable> */}
         </View>
       </View>
 
@@ -476,26 +479,26 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     position: 'relative',
   },
-  headerLeftContent: { // Yeni eklenen View için stil
-    flex: 1, // Kalan alanı doldurur
+  headerLeftContent: {
+    flex: 1,
   },
-  headerRightButtons: { // Sağ üstteki tuşlar için yeni View
+  headerRightButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12, // Tuşlar arasında boşluk
-    position: 'absolute', // Mutlak konumlandırma
-    top: 50, // Üstten hizalama
-    right: 10, // Sağdan hizalama
-    zIndex: 10, // Diğer öğelerin üzerinde kalması için
+    gap: 12,
+    position: 'absolute',
+    top: 50,
+    right: 10,
+    zIndex: 10,
   },
-  iconButton: { // Yeni tanımlanan iconButton stili
+  iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonIcon: { // İkonlar için genel stil
+  buttonIcon: {
     opacity: 0.8,
   },
   greeting: {
@@ -521,7 +524,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   settingsButton: { // Bu artık kullanılmayacak, headerRightButtons içine taşındı
-    display: 'none', // Görselden kaldırıldı
+    display: 'none',
   },
   refreshIcon: {
     opacity: 0.8,
