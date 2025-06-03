@@ -67,15 +67,13 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    let channel: any = null;
-
     const handleFocus = () => {
       console.log('HomeScreen focused, fetching reports...');
       fetchReports();
       fetchUserData();
     };
 
-    const setupListenersAndFetch = async () => {
+    const setupSupabaseListenersAndFetch = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.warn('HomeScreen: User not authenticated on init, redirecting to login.');
@@ -87,7 +85,7 @@ export default function HomeScreen() {
 
       await fetchReports(true);
 
-      channel = supabase
+      const channel = supabase
         .channel('reports_channel_home_screen')
         .on('postgres_changes', {
           event: '*',
@@ -103,20 +101,30 @@ export default function HomeScreen() {
       if (typeof window !== 'undefined') {
         window.addEventListener('focus', handleFocus);
       }
+
+      // Cleanup fonksiyonu döndür
+      return () => {
+        if (channel) {
+          console.log('Unsubscribing reports_channel_home_screen');
+          channel.unsubscribe();
+        }
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('focus', handleFocus);
+        }
+      };
     };
 
-    setupListenersAndFetch();
-
+    const cleanup = setupSupabaseListenersAndFetch(); // Async fonksiyonu çağırıp cleanup fonksiyonunu al
+    
+    // useEffect'in kendi cleanup'ını döndür
     return () => {
-      if (channel) {
-        console.log('Unsubscribing reports_channel_home_screen');
-        channel.unsubscribe();
-      }
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('focus', handleFocus);
-      }
+      cleanup.then(cb => { // Promise tamamlandığında cleanup callback'ini çağır
+        if (typeof cb === 'function') {
+          cb();
+        }
+      });
     };
-  }, []);
+  }, []); // Bağımlılık dizisi boş kalmalı ki sadece bir kez monte edilsin
 
   async function fetchUserData() {
     try {
@@ -303,7 +311,7 @@ export default function HomeScreen() {
 
       {/* Ana Sayfa Başlık ve Tuş Bölümü */}
       <View style={styles.header}>
-        <View style={styles.headerLeftContent}> {/* Yeni View */}
+        <View style={styles.headerLeftContent}>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>
             {greeting},
           </Text>
@@ -314,7 +322,7 @@ export default function HomeScreen() {
           <View style={styles.trendCapsuleNewLocation}>
             <TrendCapsule />
           </View>
-          <Text style={[styles.aiText, { color: colors.primary }]}>
+          <Text style={[styles.aiText, { color: colors.primary, marginTop: 8 }]}>
             Yapay Zeka Raporlarınız Hazır
           </Text>
         </View>
@@ -322,7 +330,13 @@ export default function HomeScreen() {
         {/* Sağ üstteki tuşlar */}
         <View style={styles.headerRightButtons}>
           <Pressable
-            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            style={({ pressed }) => [ //pressed efekti eklendi
+              styles.iconButton, 
+              { 
+                backgroundColor: colors.card,
+                opacity: pressed ? 0.7 : 1 //pressed efekti
+              }
+            ]}
             onPress={handleManualRefresh}
             disabled={isRefreshing}
           >
@@ -335,7 +349,13 @@ export default function HomeScreen() {
             </Animated.View>
           </Pressable>
           <Pressable
-            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            style={({ pressed }) => [ //pressed efekti eklendi
+              styles.iconButton, 
+              { 
+                backgroundColor: colors.card,
+                opacity: pressed ? 0.7 : 1 //pressed efekti
+              }
+            ]}
             onPress={handleToggleTheme}
           >
             {theme === 'dark' ? (
@@ -345,7 +365,13 @@ export default function HomeScreen() {
             )}
           </Pressable>
           <Pressable
-            style={[styles.iconButton, { backgroundColor: colors.card }]}
+            style={({ pressed }) => [ //pressed efekti eklendi
+              styles.iconButton, 
+              { 
+                backgroundColor: colors.card,
+                opacity: pressed ? 0.7 : 1 //pressed efekti
+              }
+            ]}
             onPress={() => setIsMenuVisible(true)}
           >
             <MoreVertical size={20} color={colors.text} />
@@ -451,7 +477,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   headerLeftContent: { // Yeni eklenen View için stil
-    flex: 1,
+    flex: 1, // Kalan alanı doldurur
   },
   headerRightButtons: { // Sağ üstteki tuşlar için yeni View
     flexDirection: 'row',
@@ -461,6 +487,16 @@ const styles = StyleSheet.create({
     top: 50, // Üstten hizalama
     right: 10, // Sağdan hizalama
     zIndex: 10, // Diğer öğelerin üzerinde kalması için
+  },
+  iconButton: { // Yeni tanımlanan iconButton stili
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonIcon: { // İkonlar için genel stil
+    opacity: 0.8,
   },
   greeting: {
     fontFamily: 'Inter-Regular',
@@ -482,19 +518,12 @@ const styles = StyleSheet.create({
   aiText: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
-    // marginTop: 8, // Bu stil artık doğrudan View içinde veriliyor
+    marginTop: 8,
   },
   settingsButton: { // Bu artık kullanılmayacak, headerRightButtons içine taşındı
     display: 'none', // Görselden kaldırıldı
   },
-  iconButton: { // Yeni tanımlanan iconButton stili
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonIcon: { // İkonlar için genel stil
+  refreshIcon: {
     opacity: 0.8,
   },
   list: {
