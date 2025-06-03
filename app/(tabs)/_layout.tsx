@@ -14,31 +14,31 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,
-          height: 90, // Yüksekliği artırıldı (örneğin 84'ten 90'a)
-          paddingBottom: 24, // Alt dolgu korunabilir veya biraz azaltılabilir (örn: 20)
-          paddingTop: 8,     // Üst dolgu korunabilir veya biraz azaltılabilir (örn: 4)
-          elevation: 0,      // Android'deki gölgeyi kaldırır
-          shadowOpacity: 0,  // iOS'teki gölgeyi kaldırır
-          borderTopWidth: 1, // Üst kenarlık kalınlığı
+          height: 90,
+          paddingBottom: 24,
+          paddingTop: 8,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderTopWidth: 1,
         },
-        tabBarActiveTintColor: colors.primary,      // Aktif sekme metin ve ikon rengi
-        tabBarInactiveTintColor: colors.textTertiary, // Pasif sekme metin ve ikon rengi
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium', // Font ailesi
-          fontSize: 13,                // Font boyutu
-          marginTop: 2,                // İkon ile metin arasındaki boşluk azaltıldı (örneğin 4'ten 2'ye)
+          fontFamily: 'Inter-Medium',
+          fontSize: 13,
+          marginTop: 2,
         },
         tabBarIconStyle: {
-          marginBottom: 0, // İkonun altında boşluk bırakılmaz
+          marginBottom: 0,
         },
-        headerShown: false, // Her bir ekranın başlığını gizler
+        headerShown: false,
       }}
     >
       {/* Ana Sayfa Sekmesi */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Ana Sayfa', // Sekme başlığı
+          title: 'Ana Sayfa',
           tabBarIcon: ({ color, size }) => (
             <View style={styles.iconContainer}>
               <Home color={color} size={size} />
@@ -94,6 +94,13 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* Profile sekmesi kaldırıldı */}
+      {/* <Tabs.Screen
+        name="profile"
+        options={{
+          href: null // Bu sekmeyi doğrudan gezintiden kaldırır
+        }}
+      /> */}
     </Tabs>
   );
 }
@@ -102,7 +109,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32, // İkon kapsayıcısının genişliği
-    height: 32, // İkon kapsayıcısının yüksekliği
+    width: 32,
+    height: 32,
   },
 });
