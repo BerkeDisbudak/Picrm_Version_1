@@ -1,5 +1,4 @@
 // app/(tabs)/index.tsx
-// Görsel ve konumlandırma iyileştirmeleri tekrar uygulanıyor
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
@@ -7,7 +6,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native'; // MoreVertical kaldırıldı
+import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native';
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
 import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { TrendCapsule } from '@/components/TrendCapsule';
@@ -81,7 +80,6 @@ export default function HomeScreen() {
       if (!user) {
         console.warn('HomeScreen: User not authenticated on init, redirecting to login.');
         router.replace('/login');
-        setLoading(false);
         return;
       }
       setUser(user);
@@ -173,19 +171,19 @@ export default function HomeScreen() {
 
   const handleManualRefresh = () => {
     setIsRefreshing(true);
-    setIsMenuVisible(false); // Menüyü kapat
+    setIsMenuVisible(false);
     setError(null);
     fetchReports();
   };
 
   const handleToggleTheme = () => {
     toggleTheme();
-    setIsMenuVisible(false); // Menüyü kapat
+    setIsMenuVisible(false);
   };
 
   const handleGoToSettings = () => {
     router.push('/settings');
-    setIsMenuVisible(false); // Menüyü kapat
+    setIsMenuVisible(false);
   };
 
   const handleCreateReport = async () => {
@@ -247,6 +245,25 @@ export default function HomeScreen() {
       </Pressable>
     </Animated.View>
   );
+
+  const renderFooter = () => {
+    if (reports.length <= 3) return null;
+
+    return (
+      <Pressable
+        style={({ pressed }) => [
+          styles.viewAllReportsButton,
+          { 
+            backgroundColor: colors.primary,
+            opacity: pressed ? 0.8 : 1
+          }
+        ]}
+        onPress={() => router.push('/reports')}
+      >
+        <Text style={styles.viewAllReportsButtonText}>Tüm Raporları Görüntüle</Text>
+      </Pressable>
+    );
+  };
 
   if (loading) {
     return (
@@ -323,7 +340,7 @@ export default function HomeScreen() {
             Yapay Zeka Raporlarınız Hazır
           </Text>
           {/* Trend Kapsülü yeni konumu ve daha aşağıda */}
-          <View style={[styles.trendCapsuleNewLocation, { marginTop: 20 }]}> {/* marginTop değeri 20 olarak ayarlandı */}
+          <View style={[styles.trendCapsuleNewLocation, { marginTop: 20 }]}>
             <TrendCapsule />
           </View>
         </View>
@@ -335,7 +352,7 @@ export default function HomeScreen() {
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1
+                opacity: pressed ? 0.7 : 1 // Animasyon efekti
               }
             ]}
             onPress={handleManualRefresh}
@@ -354,7 +371,7 @@ export default function HomeScreen() {
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1
+                opacity: pressed ? 0.7 : 1 // Animasyon efekti
               }
             ]}
             onPress={handleToggleTheme}
@@ -365,7 +382,6 @@ export default function HomeScreen() {
               <Moon size={20} color={colors.text} style={styles.buttonIcon} />
             )}
           </Pressable>
-          {/* Üç nokta tuşu kaldırıldı */}
         </View>
       </View>
 
@@ -410,7 +426,7 @@ export default function HomeScreen() {
 
       {/* Rapor Listesi */}
       <FlatList
-        data={reports}
+        data={reports.slice(0, 3)} // Sadece ilk 3 raporu göster
         renderItem={renderReport}
         keyExtractor={item => item.id}
         contentContainerStyle={[
@@ -448,6 +464,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         )}
+        ListFooterComponent={renderFooter} // Footer bileşenini ekle
       />
     </View>
   );
@@ -644,6 +661,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   createFirstReportButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  // Yeni eklenen buton stilleri
+  viewAllReportsButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 24,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewAllReportsButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
