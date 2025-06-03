@@ -1,4 +1,4 @@
-// app/(tabs)/index.tsx dosyası
+// app/(tabs)/index.tsx
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { FileText, RefreshCw, Sun, Moon, PlusCircle, Settings } from 'lucide-react-native';
 import { Report, createReport, getReports, supabase } from '@/lib/supabase';
-import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withRepeat, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, Layout, useAnimatedStyle, withSpring, withTiming, withSequence, FadeIn, SlideInRight, SlideOutRight, useSharedValue } from 'react-native-reanimated'; // useSharedValue eklendi
 import { TrendCapsule } from '@/components/TrendCapsule';
 
 const { width, height } = Dimensions.get('window');
@@ -25,37 +25,32 @@ export default function HomeScreen() {
   const [creating, setCreating] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // isRefreshing state'i hala yenileme işlemini kontrol etmek için kullanılacak.
+  // Animasyon için ayrı bir shared value kullanacağız.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // Refresh tuşu için animasyon stili (mevcut dönme animasyonu)
-  const refreshIconStyle = useAnimatedStyle(() => {
-    if (!isRefreshing) return {};
+  // Animasyonlar için Shared Value'lar
+  const refreshRotate = useSharedValue(0);
+  const themeToggleScale = useSharedValue(1);
+  const themeToggleRotate = useSharedValue(0);
+
+
+  // Refresh tuşu için animasyon stili (tıklamayla tetiklenen dönme)
+  const animatedRefreshIconStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        {
-          rotate: withRepeat(
-            withSequence(
-              withTiming('0deg', { duration: 0 }),
-              withTiming('360deg', { duration: 1000 })
-            ),
-            -1,
-            false
-          ),
-        },
-      ],
+      transform: [{ rotate: `${refreshRotate.value}deg` }],
     };
   });
 
-  // Tema ikonu animasyon stili (sadece menü açıkken dönme/büyüme efekti)
-  const themeIconAnimatedStyle = useAnimatedStyle(() => {
+  // Tema ikonu animasyon stili (tıklamayla tetiklenen scale ve dönme)
+  const animatedThemeToggleStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { scale: withTiming(isMenuVisible ? 1.1 : 1, { duration: 200 }) },
-        { rotate: withTiming(isMenuVisible ? '360deg' : '0deg', { duration: 400 }) },
+        { scale: themeToggleScale.value },
+        { rotate: `${themeToggleRotate.value}deg` },
       ],
     };
-  }, [theme, isMenuVisible]);
+  });
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -80,6 +75,7 @@ export default function HomeScreen() {
       if (!user) {
         console.warn('HomeScreen: User not authenticated on init, redirecting to login.');
         router.replace('/login');
+        setLoading(false);
         return;
       }
       setUser(user);
@@ -159,7 +155,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
       setRefreshing(false);
-      setIsRefreshing(false);
+      // setIsRefreshing(false); // Bu artık manuel animasyonu tetiklemeyecek
     }
   }
 
@@ -170,15 +166,30 @@ export default function HomeScreen() {
   }, []);
 
   const handleManualRefresh = () => {
-    setIsRefreshing(true);
-    setIsMenuVisible(false);
+    // Animasyonu tetikle
+    refreshRotate.value = withSequence(
+      withTiming(360, { duration: 500 }), // Bir tur dön
+      withTiming(0, { duration: 0 }) // Başlangıç konumuna geri dön
+    );
+    // Veri yenileme işlemini başlat
+    setRefreshing(true); // Yükleme göstergesini başlat
     setError(null);
     fetchReports();
   };
 
   const handleToggleTheme = () => {
+    // Animasyonu tetikle
+    themeToggleScale.value = withSequence(
+      withTiming(0.8, { duration: 150 }), // Hafifçe küçül
+      withTiming(1, { duration: 150 }) // Eski boyutuna dön
+    );
+    themeToggleRotate.value = withSequence(
+      withTiming(360, { duration: 300 }), // Dön
+      withTiming(0, { duration: 0 }) // Başlangıç açısına dön
+    );
+
+    // Tema değiştirme işlemini yap
     toggleTheme();
-    setIsMenuVisible(false);
   };
 
   const handleGoToSettings = () => {
@@ -256,7 +267,7 @@ export default function HomeScreen() {
           styles.viewAllReportsButton,
           { 
             backgroundColor: colors.primary,
-            opacity: pressed ? 0.8 : 1 // Tıklama animasyonu
+            opacity: pressed ? 0.8 : 1
           }
         ]}
         onPress={() => router.push('/reports')}
@@ -302,14 +313,14 @@ export default function HomeScreen() {
               <Text style={[styles.menuItemText, { color: colors.text }]}>
                 Raporları Yenile
               </Text>
-              {isRefreshing && <ActivityIndicator size="small" color={colors.primary} style={styles.menuItemIcon} />}
+              {refreshing && <ActivityIndicator size="small" color={colors.primary} style={styles.menuItemIcon} />} {/* isRefreshing yerine refreshing */}
             </Pressable>
             <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
             <Pressable style={styles.menuItem} onPress={handleToggleTheme}>
               <Text style={[styles.menuItemText, { color: colors.text }]}>
                 {theme === 'dark' ? "Açık Tema" : "Koyu Tema"}
               </Text>
-              <Animated.View style={themeIconAnimatedStyle}>
+              <Animated.View style={animatedThemeToggleStyle}> {/* Yeni animasyon stili kullanıldı */}
                 {theme === 'dark' ? (
                   <Sun size={20} color={colors.text} style={styles.menuItemIcon} />
                 ) : (
@@ -358,9 +369,9 @@ export default function HomeScreen() {
               }
             ]}
             onPress={handleManualRefresh}
-            disabled={isRefreshing}
+            disabled={refreshing} {/* isRefreshing yerine refreshing */}
           >
-            <Animated.View style={refreshIconStyle}>
+            <Animated.View style={animatedRefreshIconStyle}> {/* Yeni animasyon stili kullanıldı */}
               <RefreshCw 
                 size={20} 
                 color={colors.text}
@@ -379,11 +390,13 @@ export default function HomeScreen() {
             ]}
             onPress={handleToggleTheme}
           >
-            {theme === 'dark' ? (
-              <Sun size={20} color={colors.text} style={styles.buttonIcon} />
-            ) : (
-              <Moon size={20} color={colors.text} style={styles.buttonIcon} />
-            )}
+            <Animated.View style={animatedThemeToggleStyle}> {/* Yeni animasyon stili kullanıldı */}
+              {theme === 'dark' ? (
+                <Sun size={20} color={colors.text} style={styles.buttonIcon} />
+              ) : (
+                <Moon size={20} color={colors.text} style={styles.buttonIcon} />
+              )}
+            </Animated.View>
           </Pressable>
         </View>
       </View>
@@ -671,8 +684,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    marginTop: 24, // Raporlar ve buton arasına boşluk
-    alignSelf: 'center', // Ortalamak için
+    marginTop: 24,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -682,7 +695,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
-  // Modal ve Menü Stilleri
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-start',
