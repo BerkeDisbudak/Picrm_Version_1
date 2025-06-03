@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Switch, Image } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Check, Lock } from 'lucide-react-native';
+import { ArrowLeft, Check, Lock, Pi } from 'lucide-react-native'; // Pi ikonunu ekledik
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 export default function PrivacyScreen() {
@@ -44,10 +44,8 @@ export default function PrivacyScreen() {
             <Lock size={20} color={colors.primary} style={styles.headerIcon} />
           </View>
         </View>
-        <Image 
-          source={{ uri: 'https://dijitalpi.com/wp-content/uploads/2024/10/DijitalPi-Dijital-Pazarlama-Ajansi-Logo.png' }}
-          style={styles.logo}
-        />
+        {/* DijitalPi logosunu Pi sembolü ile değiştirdik */}
+        <Pi size={40} color={colors.primary} />
       </View>
       
       <ScrollView
@@ -246,7 +244,7 @@ const styles = StyleSheet.create({
   headerIcon: {
     marginTop: 2,
   },
-  logo: {
+  logo: { // Bu stil artık kullanılmayacak ama tanımlı kalmasında sakınca yok
     width: 40,
     height: 40,
     borderRadius: 20,
