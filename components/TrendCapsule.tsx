@@ -1,4 +1,4 @@
-// components/TrendCapsule.tsx dosyası
+// components/TrendCapsule.tsx
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
@@ -8,16 +8,22 @@ import { TrendingUp } from 'lucide-react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 // Trend verisinin yapısını tanımlar.
+// 'trend' olarak düzeltildi
 interface TrendData {
-  trend: string; // 'trends' yerine 'trend' olarak düzeltildi
+  trend: string; // Veritabanındaki 'trend' sütununun içeriği
 }
 
 export function TrendCapsule() {
   const { colors } = useTheme();
+  // Bileşen state'leri
   const [trendData, setTrendData] = useState<TrendData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Supabase'den en son trend verisini çeker.
+   * Bu fonksiyon hem ilk yüklemede hem de gerçek zamanlı değişikliklerde çağrılır.
+   */
   const fetchLatestTrend = async () => {
     setLoading(true);
     setError(null);
@@ -30,9 +36,11 @@ export function TrendCapsule() {
         return;
       }
 
+      // Supabase'den 'trend_analyses' tablosunu sorgular.
+      // 'trend' sütununu seçtiğimizden emin olalım
       const { data, error: fetchError } = await supabase
         .from('trend_analyses')
-        .select('trend, created_at') // 'trends' yerine 'trend' olarak düzeltildi
+        .select('trend, created_at') // 'trend' sütununu seçildi
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -44,8 +52,8 @@ export function TrendCapsule() {
       }
 
       if (data) {
-        setTrendData({ trend: data.trend }); // 'trends' yerine 'trend' olarak düzeltildi
-        console.log('Trend verisi başarıyla çekildi:', data.trend); // 'trends' yerine 'trend' olarak düzeltildi
+        setTrendData({ trend: data.trend }); // 'trend' olarak güncellendi
+        console.log('Trend verisi başarıyla çekildi:', data.trend);
       } else {
         setTrendData(null); 
         console.log('Belirtilen kullanıcı için trend verisi bulunamadı.');
@@ -129,7 +137,7 @@ export function TrendCapsule() {
           style={[styles.text, { color: colors.primary }]}
           numberOfLines={1} 
         >
-          Lead Sayısı: {trendData.trend} {/* 'trends' yerine 'trend' kullanıldı */}
+          Lead Sayısı: {trendData.trend} {/* 'trend' olarak kullanıldı */}
         </Text>
       </View>
     </Animated.View>
