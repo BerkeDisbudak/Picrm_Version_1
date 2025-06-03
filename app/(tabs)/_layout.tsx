@@ -1,9 +1,11 @@
+// app/(tabs)/_layout.tsx
+
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 // İkonlar için doğru import yolları (lucide-react-native)
-import { Chrome as Home, FileText, TrendingUp, Settings, Lock } from 'lucide-react-native';
+import { LayoutDashboard, FileText, TrendingUp, Settings, Lock } from 'lucide-react-native'; // Chrome yerine LayoutDashboard import edildi
 
 export default function TabLayout() {
   const { colors } = useTheme();
@@ -41,7 +43,7 @@ export default function TabLayout() {
           title: 'Ana Sayfa',
           tabBarIcon: ({ color, size }) => (
             <View style={styles.iconContainer}>
-              <Home color={color} size={size} />
+              <LayoutDashboard color={color} size={size} /> {/* Home yerine LayoutDashboard kullanıldı */}
             </View>
           ),
         }}
@@ -94,13 +96,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* Profile sekmesi kaldırıldı */}
-      {/* <Tabs.Screen
-        name="profile"
-        options={{
-          href: null // Bu sekmeyi doğrudan gezintiden kaldırır
-        }}
-      /> */}
     </Tabs>
   );
 }
