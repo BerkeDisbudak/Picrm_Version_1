@@ -1,4 +1,4 @@
-// app/(tabs)/index.tsx
+// app/(tabs)/index.tsx dosyası
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, RefreshControl, TextInput, Modal, Dimensions } from 'react-native';
@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-  // Refresh tuşu için animasyon stili
+  // Refresh tuşu için animasyon stili (mevcut dönme animasyonu)
   const refreshIconStyle = useAnimatedStyle(() => {
     if (!isRefreshing) return {};
     return {
@@ -47,7 +47,7 @@ export default function HomeScreen() {
     };
   });
 
-  // Tema ikonu animasyon stili
+  // Tema ikonu animasyon stili (sadece menü açıkken dönme/büyüme efekti)
   const themeIconAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -247,6 +247,7 @@ export default function HomeScreen() {
   );
 
   const renderFooter = () => {
+    // Sadece 3'ten fazla rapor varsa butonu göster
     if (reports.length <= 3) return null;
 
     return (
@@ -255,7 +256,7 @@ export default function HomeScreen() {
           styles.viewAllReportsButton,
           { 
             backgroundColor: colors.primary,
-            opacity: pressed ? 0.8 : 1
+            opacity: pressed ? 0.8 : 1 // Tıklama animasyonu
           }
         ]}
         onPress={() => router.push('/reports')}
@@ -352,7 +353,8 @@ export default function HomeScreen() {
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 // Animasyon efekti
+                opacity: pressed ? 0.7 : 1, // Tıklama animasyonu
+                transform: [{ scale: pressed ? 0.9 : 1 }] // Tıklama animasyonu
               }
             ]}
             onPress={handleManualRefresh}
@@ -371,7 +373,8 @@ export default function HomeScreen() {
               styles.iconButton, 
               { 
                 backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1 // Animasyon efekti
+                opacity: pressed ? 0.7 : 1, // Tıklama animasyonu
+                transform: [{ scale: pressed ? 0.9 : 1 }] // Tıklama animasyonu
               }
             ]}
             onPress={handleToggleTheme}
@@ -515,7 +518,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     marginBottom: 8,
   },
-  // Trend kapsülünün yeni konumu ve boyutları
   trendCapsuleNewLocation: {
     marginBottom: 8,
     alignSelf: 'flex-start',
@@ -665,13 +667,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
-  // Yeni eklenen buton stilleri
   viewAllReportsButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    marginTop: 24,
-    alignSelf: 'center',
+    marginTop: 24, // Raporlar ve buton arasına boşluk
+    alignSelf: 'center', // Ortalamak için
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
