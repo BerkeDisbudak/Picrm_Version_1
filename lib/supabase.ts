@@ -11,48 +11,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Set up real-time subscription for reports
-// Bu blokta, aboneliği döndüren bir değişkeni yakalamalıyız
-// ve ardından uygulamamızın yaşam döngüsünde aboneliği iptal etmeliyiz.
-// Şimdilik, genel bir çözüm olarak burada bir değişken tanımlayabiliriz.
-// Ancak, daha iyi bir yaklaşım, bu abonelikleri belirli React bileşenlerinin
-// useEffect kancaları içinde yönetmek olacaktır.
-// Yine de, bu hatayı gidermek için, abonelik nesnesinin düzgün bir şekilde
-// yönetildiğinden emin olalım.
-
-let reportsChannel: any = null; // reports kanalını tutacak değişken
-
-if (Platform.OS === 'web') {
-  // Eğer kanal henüz oluşturulmadıysa ve abone olunmadıysa
-  if (!reportsChannel || reportsChannel.state === 'closed') { 
-    reportsChannel = supabase
-      .channel('reports')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'Reports',
-      }, () => {
-        // Dispatch custom event for real-time updates
-        const event = new CustomEvent('reportUpdate');
-        window.dispatchEvent(event);
-      })
-      .subscribe();
-
-    // Uygulama kapatıldığında veya yeniden yüklendiğinde aboneliği iptal et
-    // Bu, StackBlitz'in "destroy is not a function" hatasına neden olan
-    // yaşam döngüsü sorunlarını gidermeye yardımcı olabilir.
-    // Bu listener'ı yalnızca bir kez eklediğimizden emin olmalıyız.
-    if (!window.__supabaseReportsChannelCleanupRegistered) {
-      window.addEventListener('beforeunload', () => {
-        if (reportsChannel) {
-          reportsChannel.unsubscribe();
-          reportsChannel = null; // Kanalı sıfırla
-        }
-      });
-      window.__supabaseReportsChannelCleanupRegistered = true; // Kayıtlı olduğunu işaretle
-    }
-  }
-}
+// Global kanal aboneliği buradan kaldırıldı.
+// Her bileşen kendi Supabase kanal aboneliğini useEffect içinde yönetecek.
+// Bu, hem kodun daha temiz olmasını sağlar hem de Hot Reloading gibi durumlarda
+// kanal yönetiminden kaynaklanan sorunları ortadan kaldırır.
 
 export interface Report {
   id: string;
@@ -103,11 +65,4 @@ export async function deleteReport(id: string) {
     .eq('id', id);
 
   if (error) throw error;
-}
-
-// Global scope'a bu değişkeni ekliyoruz ki, birden fazla kez tanımlanmasın
-declare global {
-  interface Window {
-    __supabaseReportsChannelCleanupRegistered?: boolean;
-  }
 }
